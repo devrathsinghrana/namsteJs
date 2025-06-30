@@ -62,15 +62,6 @@
             margin-bottom: 10px;
         }
         
-        .error-output {
-            background-color: #2d1b1b;
-            border: 1px solid #f85149;
-            border-radius: 5px;
-            padding: 15px;
-            margin: 15px 0;
-            color: #f85149;
-        }
-        
         .highlight {
             background-color: #264f78;
             padding: 2px 4px;
@@ -119,22 +110,6 @@
         
         .run-button:hover {
             background-color: #1177bb;
-        }
-        
-        .error-button {
-            background-color: #d73a49;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin: 10px 5px;
-            transition: background-color 0.3s;
-        }
-        
-        .error-button:hover {
-            background-color: #f85149;
         }
         
         .comparison-table {
@@ -186,21 +161,16 @@
     <div class="container">
         <h1>🔍 JavaScript Hoisting Deep Dive</h1>
         
-        <div class="warning">
-            <strong>⚠️ Code Issue Detected:</strong> There's a typo in the function name: <code>getNAme()</code> should be <code>getName()</code>. 
-            This will cause a ReferenceError when trying to call the function.
-        </div>
-        
         <div class="code-section">
-            <div class="code-title">📝 Original Code (with issues):</div>
-            <pre><code>getName();              // ❌ ReferenceError: getName is not defined
-console.log(getName);   // ❌ ReferenceError: getName is not defined
-console.log(x);         // ✅ undefined (hoisted var)
-console.log(getName2);  // ✅ undefined (hoisted var)
-console.log(getName3);  // ✅ undefined (hoisted var)
+            <div class="code-title">📝 Source Code (js-hoisting-detailed-explanation.js):</div>
+            <pre><code>getName();              // ✅ "Devrath" (function declaration hoisted)
+console.log(getName);   // ✅ [Function] (complete function available)
+console.log(x);         // ✅ undefined (var hoisted but not assigned)
+console.log(getName2);  // ✅ undefined (var hoisted but function not assigned)
+console.log(getName3);  // ✅ undefined (var hoisted but arrow function not assigned)
 
 var x = 5;
-function getNAme() {    // ⚠️ TYPO: should be getName
+function getName() {
   return "Devrath";
 }
 
@@ -212,28 +182,23 @@ var getName3 = () => {
   return "Devrath Rana Singh";
 };
 
-getName2();             // ✅ Works after assignment
-getName3();             // ✅ Works after assignment
-console.log(x);         // ✅ 5
-console.log(getName2);  // ✅ [Function]
-console.log(getName3);  // ✅ [Function]</code></pre>
+getName2();             // ✅ "Devrath Rana" (works after assignment)
+getName3();             // ✅ "Devrath Rana Singh" (works after assignment)
+console.log(x);         // ✅ 5 (assigned value)
+console.log(getName2);  // ✅ [Function] (function object)
+console.log(getName3);  // ✅ [Function] (arrow function object)</code></pre>
         </div>
         
         <div style="text-align: center;">
-            <button class="error-button" onclick="executeOriginalCode()">🚫 Run Original (Buggy) Code</button>
-            <button class="run-button" onclick="executeFixedCode()">✅ Run Fixed Code</button>
+            <button class="run-button" onclick="executeCode()">▶️ Execute Code</button>
             <button class="run-button" onclick="showHoistingAnalysis()">🔍 Show Hoisting Analysis</button>
             <button class="run-button" onclick="showMemoryPhases()">🧠 Memory & Execution Phases</button>
-        </div>
-        
-        <div class="error-output" id="error-output" style="display: none;">
-            <div class="output-title">❌ Error Output:</div>
-            <div id="error-content"></div>
+            <button class="run-button" onclick="clearOutput()">🗑️ Clear Output</button>
         </div>
         
         <div class="output">
             <div class="output-title">📊 Console Output:</div>
-            <div id="console-output">Click a button to see the output...</div>
+            <div id="console-output">Click "Execute Code" to see the output...</div>
         </div>
         
         <div class="memory-phase">
@@ -294,44 +259,34 @@ console.log(getName3);  // ✅ [Function]</code></pre>
     </div>
 
     <script>
-        // Fixed version of the code
-        function executeFixedCode() {
-            clearError();
+        // Execute the hoisting demonstration code
+        function executeCode() {
             const outputs = [];
             
-            try {
-                // Simulate the fixed code execution
-                outputs.push("=== BEFORE DECLARATIONS ===");
-                outputs.push("getName(): Devrath");  // Works because function is hoisted
-                outputs.push("typeof getName: function");
-                outputs.push("x: undefined");  // var is hoisted but undefined
-                outputs.push("getName2: undefined");  // var is hoisted but undefined
-                outputs.push("getName3: undefined");  // var is hoisted but undefined
-                
-                outputs.push("\n=== AFTER DECLARATIONS ===");
-                outputs.push("getName2(): Devrath Rana");
-                outputs.push("getName3(): Devrath Rana Singh");
-                outputs.push("x: 5");
-                outputs.push("typeof getName2: function");
-                outputs.push("typeof getName3: function");
-                
-            } catch (error) {
-                outputs.push(`Error: ${error.message}`);
-            }
+            // Simulate the execution with proper hoisting behavior
+            outputs.push("=== BEFORE DECLARATIONS (Hoisting in Effect) ===");
+            outputs.push("getName(): 'Devrath'");  // Works because function is fully hoisted
+            outputs.push("typeof getName: function");
+            outputs.push("x: undefined");  // var is hoisted but undefined
+            outputs.push("getName2: undefined");  // var is hoisted but undefined
+            outputs.push("getName3: undefined");  // var is hoisted but undefined
+            
+            outputs.push("");
+            outputs.push("=== AFTER ASSIGNMENTS ===");
+            outputs.push("getName2(): 'Devrath Rana'");
+            outputs.push("getName3(): 'Devrath Rana Singh'");
+            outputs.push("x: 5");
+            outputs.push("typeof getName2: function");
+            outputs.push("typeof getName3: function");
             
             document.getElementById('console-output').innerHTML = 
-                outputs.map(output => `<div style="margin: 5px 0; color: #58a6ff;">→ ${output}</div>`).join('');
-        }
-        
-        function executeOriginalCode() {
-            clearOutput();
-            showError("ReferenceError: getName is not defined<br><br>" +
-                     "The function is declared as 'getNAme()' (with capital 'A') but called as 'getName()'. " +
-                     "JavaScript is case-sensitive, so these are treated as different identifiers.");
+                outputs.map(output => {
+                    if (output === "") return '<br>';
+                    return `<div style="margin: 5px 0; color: #58a6ff;">→ ${output}</div>`;
+                }).join('');
         }
         
         function showHoistingAnalysis() {
-            clearError();
             const analysis = `
 <div style="color: #4ec9b0; font-weight: bold; margin-bottom: 15px;">🔍 HOISTING BEHAVIOR ANALYSIS:</div>
 
@@ -342,7 +297,7 @@ console.log(getName3);  // ✅ [Function]</code></pre>
 │ GLOBAL EXECUTION CONTEXT            │
 ├─────────────────────────────────────┤
 │ x: undefined                        │ ← var hoisted, initialized with undefined
-│ getNAme: [Complete Function Object] │ ← Function declaration fully hoisted
+│ getName: [Complete Function Object] │ ← Function declaration fully hoisted
 │ getName2: undefined                 │ ← var hoisted, function not assigned yet
 │ getName3: undefined                 │ ← var hoisted, arrow function not assigned yet
 └─────────────────────────────────────┘</pre>
@@ -352,28 +307,35 @@ console.log(getName3);  // ✅ [Function]</code></pre>
 <div style="margin-left: 20px;">
 <div style="color: #569cd6; font-weight: bold;">Line 1: getName()</div>
 <div style="margin-left: 15px; color: #d4d4d4;">
-❌ <span style="color: #f85149;">ReferenceError</span>: Looking for 'getName' but only 'getNAme' exists<br>
-✅ If fixed: Would call getNAme() and return "Devrath"
+✅ <span style="color: #92c5f8;">Success</span>: Function declaration is fully hoisted<br>
+✅ Returns: "Devrath"
 </div>
 
-<div style="color: #569cd6; font-weight: bold; margin-top: 10px;">Line 2-5: console.log calls</div>
+<div style="color: #569cd6; font-weight: bold; margin-top: 10px;">Line 2-5: console.log calls (before assignments)</div>
 <div style="margin-left: 15px; color: #d4d4d4;">
-• console.log(getName): ❌ <span style="color: #f85149;">ReferenceError</span><br>
-• console.log(x): ✅ undefined (var hoisted)<br>
-• console.log(getName2): ✅ undefined (var hoisted)<br>
-• console.log(getName3): ✅ undefined (var hoisted)
+• console.log(getName): ✅ [Function] (complete function object)<br>
+• console.log(x): ✅ undefined (var hoisted but not assigned)<br>
+• console.log(getName2): ✅ undefined (var hoisted but not assigned)<br>
+• console.log(getName3): ✅ undefined (var hoisted but not assigned)
 </div>
 
 <div style="color: #569cd6; font-weight: bold; margin-top: 10px;">Line 7: var x = 5</div>
 <div style="margin-left: 15px; color: #d4d4d4;">
-• x gets assigned value 5 (was undefined before)
+• x gets assigned value 5 (changes from undefined to 5)
 </div>
 
-<div style="color: #569cd6; font-weight: bold; margin-top: 10px;">Line 12-16: Function assignments</div>
+<div style="color: #569cd6; font-weight: bold; margin-top: 10px;">Line 12-18: Function assignments</div>
 <div style="margin-left: 15px; color: #d4d4d4;">
 • getName2 gets assigned function expression<br>
 • getName3 gets assigned arrow function<br>
 • Both change from undefined to function objects
+</div>
+
+<div style="color: #569cd6; font-weight: bold; margin-top: 10px;">Line 20-25: Function calls and final logging</div>
+<div style="margin-left: 15px; color: #d4d4d4;">
+• getName2(): ✅ "Devrath Rana" (works after assignment)<br>
+• getName3(): ✅ "Devrath Rana Singh" (works after assignment)<br>
+• All console.log statements show final values
 </div>
 </div>
 
@@ -382,7 +344,7 @@ console.log(getName3);  // ✅ [Function]</code></pre>
 • <span style="color: #92c5f8;">Function Declarations</span>: Fully available before declaration line<br>
 • <span style="color: #f9826c;">Function Expressions</span>: Variable hoisted, but function assigned at runtime<br>
 • <span style="color: #569cd6;">var Variables</span>: Hoisted and initialized with undefined<br>
-• <span style="color: #f85149;">Case Sensitivity</span>: getNAme ≠ getName in JavaScript
+• <span style="color: #4ec9b0;">Assignment Phase</span>: Variables get their actual values during execution
 </div>
             `;
             
@@ -390,7 +352,6 @@ console.log(getName3);  // ✅ [Function]</code></pre>
         }
         
         function showMemoryPhases() {
-            clearError();
             const phases = `
 <div style="color: #4ec9b0; font-weight: bold; margin-bottom: 15px;">🧠 MEMORY CREATION vs EXECUTION PHASES:</div>
 
@@ -404,7 +365,7 @@ console.log(getName3);  // ✅ [Function]</code></pre>
 Memory State:
 ┌─────────────────────────────────────┐
 │ x: undefined                        │ ← var declarations get undefined
-│ getNAme: function() { return "..." } │ ← Function declarations get full function
+│ getName: function() { return "..." } │ ← Function declarations get full function
 │ getName2: undefined                 │ ← var declarations get undefined  
 │ getName3: undefined                 │ ← var declarations get undefined
 └─────────────────────────────────────┘</pre>
@@ -416,12 +377,12 @@ Memory State:
 
 Line 1: getName() 
 ├─ Engine looks for 'getName' in memory
-├─ Only finds 'getNAme' (case mismatch)
-└─ ❌ ReferenceError: getName is not defined
+├─ ✅ Found: Complete function object
+└─ ✅ Returns: "Devrath"
 
 Line 2: console.log(getName)
-├─ Same issue as line 1
-└─ ❌ ReferenceError: getName is not defined
+├─ getName exists as complete function
+└─ ✅ Outputs: [Function: getName]
 
 Line 3: console.log(x)
 ├─ x exists in memory with value undefined
@@ -439,7 +400,7 @@ Line 7: var x = 5
 ├─ Assignment phase - x gets value 5
 └─ Memory: x = 5
 
-Lines 8-10: function getNAme() { ... }
+Lines 8-10: function getName() { ... }
 ├─ Already processed in memory creation phase
 └─ No action needed during execution
 
@@ -468,13 +429,13 @@ Lines 23-25: Final console.log calls
 var x;              // undefined
 var getName2;       // undefined  
 var getName3;       // undefined
-function getNAme() { // Complete function available
+function getName() { // Complete function available
   return "Devrath";
 }
 
 // Execution Phase:
-getName();          // ❌ Looking for 'getName', not 'getNAme'
-console.log(getName); // ❌ Same issue
+getName();          // ✅ Works - function is available
+console.log(getName); // ✅ [Function: getName]
 console.log(x);     // ✅ undefined
 console.log(getName2); // ✅ undefined
 console.log(getName3); // ✅ undefined
@@ -496,23 +457,19 @@ console.log(getName3); // ✅ [Function]</pre>
         }
         
         function showError(message) {
-            document.getElementById('error-output').style.display = 'block';
-            document.getElementById('error-content').innerHTML = message;
-            document.getElementById('console-output').textContent = 'Error occurred - see error output above.';
-        }
-        
-        function clearError() {
-            document.getElementById('error-output').style.display = 'none';
+            document.getElementById('console-output').innerHTML = `<div style="color: #f85149;">${message}</div>`;
         }
         
         function clearOutput() {
-            document.getElementById('console-output').textContent = 'Click a button to see the output...';
+            document.getElementById('console-output').textContent = 'Click "Execute Code" to see the output...';
+            document.getElementById('hoisting-analysis').textContent = 'Click "Show Hoisting Analysis" to see detailed breakdown...';
+            document.getElementById('phase-analysis').textContent = 'Click "Memory & Execution Phases" to see detailed analysis...';
         }
         
         // Auto-show hoisting analysis on page load
         window.addEventListener('load', () => {
             setTimeout(() => {
-                showHoistingAnalysis();
+                executeCode();
             }, 1000);
         });
     </script>
