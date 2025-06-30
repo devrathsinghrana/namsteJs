@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript Hoisting Deep Dive - Function & Variable Behavior</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: #1e1e1e;
+            color: #d4d4d4;
+            margin: 0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background-color: #252526;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            color: #569cd6;
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #569cd6;
+            padding-bottom: 10px;
+        }
+        
+        .code-section {
+            background-color: #1e1e1e;
+            border: 1px solid #3c3c3c;
+            border-radius: 5px;
+            padding: 20px;
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+        
+        .code-title {
+            color: #4ec9b0;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .output {
+            background-color: #0d1117;
+            border: 1px solid #30363d;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #58a6ff;
+        }
+        
+        .output-title {
+            color: #f85149;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+        
+        .error-output {
+            background-color: #2d1b1b;
+            border: 1px solid #f85149;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 15px 0;
+            color: #f85149;
+        }
+        
+        .highlight {
+            background-color: #264f78;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+        
+        .warning {
+            background-color: #332900;
+            border-left: 4px solid #f9826c;
+            padding: 15px;
+            margin: 15px 0;
+            color: #f9826c;
+        }
+        
+        .memory-phase {
+            background-color: #0f1419;
+            border-left: 4px solid #4ec9b0;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        .execution-phase {
+            background-color: #1a0f14;
+            border-left: 4px solid #f9826c;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        
+        pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        
+        .run-button {
+            background-color: #0e639c;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .run-button:hover {
+            background-color: #1177bb;
+        }
+        
+        .error-button {
+            background-color: #d73a49;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: background-color 0.3s;
+        }
+        
+        .error-button:hover {
+            background-color: #f85149;
+        }
+        
+        .comparison-table {
+            background-color: #1e1e1e;
+            border: 1px solid #3c3c3c;
+            border-radius: 5px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+        
+        .table-header {
+            background-color: #569cd6;
+            color: white;
+            padding: 15px;
+            font-weight: bold;
+            text-align: center;
+        }
+        
+        .table-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            border-bottom: 1px solid #3c3c3c;
+        }
+        
+        .table-cell {
+            padding: 15px;
+            border-right: 1px solid #3c3c3c;
+        }
+        
+        .table-cell:last-child {
+            border-right: none;
+        }
+        
+        .function-type {
+            color: #4ec9b0;
+            font-weight: bold;
+        }
+        
+        .hoisted {
+            color: #92c5f8;
+        }
+        
+        .not-hoisted {
+            color: #f85149;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 JavaScript Hoisting Deep Dive</h1>
+        
+        <div class="warning">
+            <strong>⚠️ Code Issue Detected:</strong> There's a typo in the function name: <code>getNAme()</code> should be <code>getName()</code>. 
+            This will cause a ReferenceError when trying to call the function.
+        </div>
+        
+        <div class="code-section">
+            <div class="code-title">📝 Original Code (with issues):</div>
+            <pre><code>getName();              // ❌ ReferenceError: getName is not defined
+console.log(getName);   // ❌ ReferenceError: getName is not defined
+console.log(x);         // ✅ undefined (hoisted var)
+console.log(getName2);  // ✅ undefined (hoisted var)
+console.log(getName3);  // ✅ undefined (hoisted var)
+
+var x = 5;
+function getNAme() {    // ⚠️ TYPO: should be getName
+  return "Devrath";
+}
+
+var getName2 = function () {
+  return "Devrath Rana";
+};
+
+var getName3 = () => {
+  return "Devrath Rana Singh";
+};
+
+getName2();             // ✅ Works after assignment
+getName3();             // ✅ Works after assignment
+console.log(x);         // ✅ 5
+console.log(getName2);  // ✅ [Function]
+console.log(getName3);  // ✅ [Function]</code></pre>
+        </div>
+        
+        <div style="text-align: center;">
+            <button class="error-button" onclick="executeOriginalCode()">🚫 Run Original (Buggy) Code</button>
+            <button class="run-button" onclick="executeFixedCode()">✅ Run Fixed Code</button>
+            <button class="run-button" onclick="showHoistingAnalysis()">🔍 Show Hoisting Analysis</button>
+            <button class="run-button" onclick="showMemoryPhases()">🧠 Memory & Execution Phases</button>
+        </div>
+        
+        <div class="error-output" id="error-output" style="display: none;">
+            <div class="output-title">❌ Error Output:</div>
+            <div id="error-content"></div>
+        </div>
+        
+        <div class="output">
+            <div class="output-title">📊 Console Output:</div>
+            <div id="console-output">Click a button to see the output...</div>
+        </div>
+        
+        <div class="memory-phase">
+            <div class="output-title">🏗️ Hoisting Analysis:</div>
+            <div id="hoisting-analysis">Click "Show Hoisting Analysis" to see detailed breakdown...</div>
+        </div>
+        
+        <div class="execution-phase">
+            <div class="output-title">⚡ Memory & Execution Phases:</div>
+            <div id="phase-analysis">Click "Memory & Execution Phases" to see detailed analysis...</div>
+        </div>
+        
+        <div class="comparison-table">
+            <div class="table-header">🔄 Hoisting Behavior Comparison</div>
+            <div class="table-row">
+                <div class="table-cell function-type">Declaration Type</div>
+                <div class="table-cell function-type">Hoisted?</div>
+                <div class="table-cell function-type">Initial Value</div>
+                <div class="table-cell function-type">Can Call Before Declaration?</div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell"><code>function getName() {}</code></div>
+                <div class="table-cell hoisted">✅ Fully Hoisted</div>
+                <div class="table-cell hoisted">Complete Function</div>
+                <div class="table-cell hoisted">✅ Yes</div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell"><code>var getName = function() {}</code></div>
+                <div class="table-cell hoisted">⚠️ Variable Hoisted</div>
+                <div class="table-cell">undefined</div>
+                <div class="table-cell not-hoisted">❌ No (TypeError)</div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell"><code>var getName = () => {}</code></div>
+                <div class="table-cell hoisted">⚠️ Variable Hoisted</div>
+                <div class="table-cell">undefined</div>
+                <div class="table-cell not-hoisted">❌ No (TypeError)</div>
+            </div>
+            <div class="table-row">
+                <div class="table-cell"><code>let/const getName = () => {}</code></div>
+                <div class="table-cell not-hoisted">❌ Temporal Dead Zone</div>
+                <div class="table-cell not-hoisted">Uninitialized</div>
+                <div class="table-cell not-hoisted">❌ No (ReferenceError)</div>
+            </div>
+        </div>
+        
+        <div class="code-section">
+            <div class="code-title">📚 Key Learning Points:</div>
+            <ul>
+                <li><span class="highlight">Function Declarations</span>: Completely hoisted - can be called before declaration</li>
+                <li><span class="highlight">var Variables</span>: Hoisted but initialized with undefined</li>
+                <li><span class="highlight">Function Expressions</span>: Only variable is hoisted, function assignment happens at runtime</li>
+                <li><span class="highlight">Arrow Functions</span>: Same as function expressions when assigned to var</li>
+                <li><span class="highlight">Temporal Dead Zone</span>: let/const variables are hoisted but uninitialized</li>
+                <li><span class="highlight">TypeError vs ReferenceError</span>: Different errors for different scenarios</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Fixed version of the code
+        function executeFixedCode() {
+            clearError();
+            const outputs = [];
+            
+            try {
+                // Simulate the fixed code execution
+                outputs.push("=== BEFORE DECLARATIONS ===");
+                outputs.push("getName(): Devrath");  // Works because function is hoisted
+                outputs.push("typeof getName: function");
+                outputs.push("x: undefined");  // var is hoisted but undefined
+                outputs.push("getName2: undefined");  // var is hoisted but undefined
+                outputs.push("getName3: undefined");  // var is hoisted but undefined
+                
+                outputs.push("\n=== AFTER DECLARATIONS ===");
+                outputs.push("getName2(): Devrath Rana");
+                outputs.push("getName3(): Devrath Rana Singh");
+                outputs.push("x: 5");
+                outputs.push("typeof getName2: function");
+                outputs.push("typeof getName3: function");
+                
+            } catch (error) {
+                outputs.push(`Error: ${error.message}`);
+            }
+            
+            document.getElementById('console-output').innerHTML = 
+                outputs.map(output => `<div style="margin: 5px 0; color: #58a6ff;">→ ${output}</div>`).join('');
+        }
+        
+        function executeOriginalCode() {
+            clearOutput();
+            showError("ReferenceError: getName is not defined<br><br>" +
+                     "The function is declared as 'getNAme()' (with capital 'A') but called as 'getName()'. " +
+                     "JavaScript is case-sensitive, so these are treated as different identifiers.");
+        }
+        
+        function showHoistingAnalysis() {
+            clearError();
+            const analysis = `
+<div style="color: #4ec9b0; font-weight: bold; margin-bottom: 15px;">🔍 HOISTING BEHAVIOR ANALYSIS:</div>
+
+<div style="color: #f9826c; font-weight: bold;">📋 Memory Creation Phase (Before ANY code execution):</div>
+<div style="margin-left: 20px; color: #d4d4d4;">
+<pre>Global Memory After Parsing:
+┌─────────────────────────────────────┐
+│ GLOBAL EXECUTION CONTEXT            │
+├─────────────────────────────────────┤
+│ x: undefined                        │ ← var hoisted, initialized with undefined
+│ getNAme: [Complete Function Object] │ ← Function declaration fully hoisted
+│ getName2: undefined                 │ ← var hoisted, function not assigned yet
+│ getName3: undefined                 │ ← var hoisted, arrow function not assigned yet
+└─────────────────────────────────────┘</pre>
+</div>
+
+<div style="color: #f9826c; font-weight: bold; margin-top: 15px;">⚡ What Happens During Execution:</div>
+<div style="margin-left: 20px;">
+<div style="color: #569cd6; font-weight: bold;">Line 1: getName()</div>
+<div style="margin-left: 15px; color: #d4d4d4;">
+❌ <span style="color: #f85149;">ReferenceError</span>: Looking for 'getName' but only 'getNAme' exists<br>
+✅ If fixed: Would call getNAme() and return "Devrath"
+</div>
+
+<div style="color: #569cd6; font-weight: bold; margin-top: 10px;">Line 2-5: console.log calls</div>
+<div style="margin-left: 15px; color: #d4d4d4;">
+• console.log(getName): ❌ <span style="color: #f85149;">ReferenceError</span><br>
+• console.log(x): ✅ undefined (var hoisted)<br>
+• console.log(getName2): ✅ undefined (var hoisted)<br>
+• console.log(getName3): ✅ undefined (var hoisted)
+</div>
+
+<div style="color: #569cd6; font-weight: bold; margin-top: 10px;">Line 7: var x = 5</div>
+<div style="margin-left: 15px; color: #d4d4d4;">
+• x gets assigned value 5 (was undefined before)
+</div>
+
+<div style="color: #569cd6; font-weight: bold; margin-top: 10px;">Line 12-16: Function assignments</div>
+<div style="margin-left: 15px; color: #d4d4d4;">
+• getName2 gets assigned function expression<br>
+• getName3 gets assigned arrow function<br>
+• Both change from undefined to function objects
+</div>
+</div>
+
+<div style="color: #4ec9b0; font-weight: bold; margin-top: 15px;">🎯 KEY INSIGHTS:</div>
+<div style="margin-left: 20px; color: #d4d4d4;">
+• <span style="color: #92c5f8;">Function Declarations</span>: Fully available before declaration line<br>
+• <span style="color: #f9826c;">Function Expressions</span>: Variable hoisted, but function assigned at runtime<br>
+• <span style="color: #569cd6;">var Variables</span>: Hoisted and initialized with undefined<br>
+• <span style="color: #f85149;">Case Sensitivity</span>: getNAme ≠ getName in JavaScript
+</div>
+            `;
+            
+            document.getElementById('hoisting-analysis').innerHTML = analysis;
+        }
+        
+        function showMemoryPhases() {
+            clearError();
+            const phases = `
+<div style="color: #4ec9b0; font-weight: bold; margin-bottom: 15px;">🧠 MEMORY CREATION vs EXECUTION PHASES:</div>
+
+<div style="color: #4ec9b0; font-weight: bold;">🏗️ PHASE 1: MEMORY CREATION (Before execution)</div>
+<div style="margin-left: 20px; color: #d4d4d4;">
+<pre style="color: #92c5f8;">JavaScript Engine Process:
+1️⃣ Scan entire code for declarations
+2️⃣ Allocate memory for variables and functions
+3️⃣ Initialize according to declaration type
+
+Memory State:
+┌─────────────────────────────────────┐
+│ x: undefined                        │ ← var declarations get undefined
+│ getNAme: function() { return "..." } │ ← Function declarations get full function
+│ getName2: undefined                 │ ← var declarations get undefined  
+│ getName3: undefined                 │ ← var declarations get undefined
+└─────────────────────────────────────┘</pre>
+</div>
+
+<div style="color: #f9826c; font-weight: bold; margin-top: 15px;">⚡ PHASE 2: CODE EXECUTION (Line by line)</div>
+<div style="margin-left: 20px;">
+<pre style="color: #d4d4d4;">Execution Timeline:
+
+Line 1: getName() 
+├─ Engine looks for 'getName' in memory
+├─ Only finds 'getNAme' (case mismatch)
+└─ ❌ ReferenceError: getName is not defined
+
+Line 2: console.log(getName)
+├─ Same issue as line 1
+└─ ❌ ReferenceError: getName is not defined
+
+Line 3: console.log(x)
+├─ x exists in memory with value undefined
+└─ ✅ Outputs: undefined
+
+Line 4: console.log(getName2)
+├─ getName2 exists in memory with value undefined
+└─ ✅ Outputs: undefined
+
+Line 5: console.log(getName3)  
+├─ getName3 exists in memory with value undefined
+└─ ✅ Outputs: undefined
+
+Line 7: var x = 5
+├─ Assignment phase - x gets value 5
+└─ Memory: x = 5
+
+Lines 8-10: function getNAme() { ... }
+├─ Already processed in memory creation phase
+└─ No action needed during execution
+
+Lines 12-15: var getName2 = function() { ... }
+├─ Assignment phase - getName2 gets function object
+└─ Memory: getName2 = [Function]
+
+Lines 17-19: var getName3 = () => { ... }
+├─ Assignment phase - getName3 gets arrow function
+└─ Memory: getName3 = [Function]
+
+Lines 21-22: Function calls
+├─ getName2() and getName3() now work
+└─ ✅ Both execute successfully
+
+Lines 23-25: Final console.log calls
+├─ All variables now have their final values
+└─ ✅ All output correctly</pre>
+</div>
+
+<div style="color: #569cd6; font-weight: bold; margin-top: 15px;">🔄 HOISTING TRANSFORMATION:</div>
+<div style="margin-left: 20px; color: #d4d4d4;">
+<pre style="color: #4ec9b0;">How JavaScript Engine "Sees" Your Code:
+
+// Memory Creation Phase Result:
+var x;              // undefined
+var getName2;       // undefined  
+var getName3;       // undefined
+function getNAme() { // Complete function available
+  return "Devrath";
+}
+
+// Execution Phase:
+getName();          // ❌ Looking for 'getName', not 'getNAme'
+console.log(getName); // ❌ Same issue
+console.log(x);     // ✅ undefined
+console.log(getName2); // ✅ undefined
+console.log(getName3); // ✅ undefined
+
+x = 5;              // Assignment
+getName2 = function () { return "Devrath Rana"; };
+getName3 = () => { return "Devrath Rana Singh"; };
+
+getName2();         // ✅ Now works
+getName3();         // ✅ Now works
+console.log(x);     // ✅ 5
+console.log(getName2); // ✅ [Function]
+console.log(getName3); // ✅ [Function]</pre>
+</div>
+</div>
+            `;
+            
+            document.getElementById('phase-analysis').innerHTML = phases;
+        }
+        
+        function showError(message) {
+            document.getElementById('error-output').style.display = 'block';
+            document.getElementById('error-content').innerHTML = message;
+            document.getElementById('console-output').textContent = 'Error occurred - see error output above.';
+        }
+        
+        function clearError() {
+            document.getElementById('error-output').style.display = 'none';
+        }
+        
+        function clearOutput() {
+            document.getElementById('console-output').textContent = 'Click a button to see the output...';
+        }
+        
+        // Auto-show hoisting analysis on page load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                showHoistingAnalysis();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
