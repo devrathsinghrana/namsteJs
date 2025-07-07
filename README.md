@@ -314,3 +314,61 @@ Open `lexicalScopeAndScopeChain.html` in your browser to see the code in action 
 - **Lexical scope** is determined by where functions and blocks are written.
 - **Scope chain** is the process JS uses to resolve variable references.
 - Accessing a variable outside its scope results in a `ReferenceError`.
+
+# Temporal Dead Zone (TDZ) in JavaScript
+
+## What is the Temporal Dead Zone?
+
+The **Temporal Dead Zone (TDZ)** is the time between entering a scope and when a variable declared with `let` or `const` is initialized.  
+Accessing the variable in this period results in a `ReferenceError`.
+
+- `let` and `const` are hoisted but not initialized, so they are in the TDZ until their declaration is evaluated.
+- `var` is hoisted and initialized as `undefined` immediately, so there is no TDZ for `var`.
+
+---
+
+## Example
+
+```javascript
+let a = 10;
+const b = 100;
+var c = 200;
+console.log(a, b, c); // 10 100 200
+```
+
+If you try to access `a` or `b` before their declarations, you get a `ReferenceError`:
+
+```javascript
+console.log(a); // ReferenceError
+let a = 10;
+```
+
+---
+
+## Visualization
+
+```
+Scope Start
+|
+|-- TDZ for a and b (ReferenceError if accessed)
+|
+|-- let a = 10;   // TDZ for a ends
+|-- const b = 100; // TDZ for b ends
+|-- var c = 200;   // c is initialized as undefined at scope start
+|
+|-- console.log(a, b, c); // 10 100 200
+```
+
+---
+
+## Try It Yourself
+
+Open `temporal-dead-zone.html` in your browser to see the code and TDZ explanation in action.
+
+---
+
+## Key Takeaways
+
+- **TDZ** applies to `let` and `const`, not `var`.
+- Accessing a `let` or `const` variable before its declaration throws a `ReferenceError`.
+- Always declare variables at the top of their scope to avoid
