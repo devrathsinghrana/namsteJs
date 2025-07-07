@@ -34,7 +34,7 @@
 
 #### 🏠 **Variable Environment & Scope Series:**
 
-5. **`variable-environment-and-scope-demo.html`** ⭐ **NEW**
+5. **`variable-environment-and-scope-demo.html`**
    - 🎯 **Interactive Scope Demo**: Variable environment and scope isolation demonstration
    - ✨ **Features**: Step-by-step execution, call stack visualization, scope analysis
    - 🎯 **Purpose**: Understanding how local variables don't affect global scope
@@ -45,6 +45,20 @@
    - 🔍 **Content**: Global vs local variable scope, function execution contexts
    - 📖 **Purpose**: Fundamental scope and variable environment example
    - 💻 **Usage**: Study how each function creates its own variable environment
+
+#### 🔍 **Undefined vs Not Defined Series:**
+
+7. **`undefined-vs-not-defined-demo.html`** ⭐ **NEW**
+   - 🔍 **Interactive Undefined Demo**: Comprehensive undefined vs not defined demonstration
+   - ✨ **Features**: Step-by-step execution, error handling, comparison table, memory visualization
+   - 🎯 **Purpose**: Understanding the difference between undefined (exists, no value) and not defined (doesn't exist)
+   - 📱 **Usage**: Open in any web browser for interactive learning
+
+8. **`UndefinedVsNotDefined.js`**
+   - 📚 **Core Example**: Fundamental example showing undefined vs not defined behavior
+   - 🔍 **Content**: Variable hoisting, undefined state, ReferenceError demonstration
+   - 📖 **Purpose**: Basic understanding of memory allocation and variable states
+   - 💻 **Usage**: Study how JavaScript engine handles variable existence vs assignment
 
 ## 🎓 Learning Objectives
 
@@ -61,12 +75,19 @@
 - **Temporal Dead Zone** for let/const
 - **Error Types**: ReferenceError vs TypeError
 
-### 🏠 **Variable Environment & Scope (Files 5-6):** ⭐ **NEW**
+### 🏠 **Variable Environment & Scope (Files 5-6):**
 - **Variable Environment** isolation between execution contexts
 - **Scope Chain** and variable shadowing
 - **Local vs Global** variable behavior
 - **Function Scope** vs **Block Scope**
 - **Memory Management** in different execution contexts
+
+### 🔍 **Undefined vs Not Defined (Files 7-8):** ⭐ **NEW**
+- **undefined** as a primitive value vs **not defined** as an error state
+- **Memory allocation** during hoisting vs **no memory allocation**
+- **ReferenceError** understanding and prevention
+- **Dynamic typing** and variable reassignment
+- **Safe variable checking** techniques
 
 ## 🚀 Quick Start
 
@@ -92,7 +113,7 @@
    Read: js-hoisting-detailed-explanation.js
    ```
 
-### For Variable Environment & Scope: ⭐ **NEW**
+### For Variable Environment & Scope:
 1. **Interactive Learning**: 
    ```
    Open: variable-environment-and-scope-demo.html
@@ -101,6 +122,17 @@
 2. **Core Example**:
    ```
    Study: howFunctionWorkAndVariableEnvironment.js
+   ```
+
+### For Undefined vs Not Defined: ⭐ **NEW**
+1. **Interactive Learning**: 
+   ```
+   Open: undefined-vs-not-defined-demo.html
+   ```
+
+2. **Core Example**:
+   ```
+   Study: UndefinedVsNotDefined.js
    ```
 
 ## 📊 What You'll Learn
@@ -118,12 +150,19 @@
 - How `let`/`const` create Temporal Dead Zone
 - The difference between ReferenceError and TypeError
 
-### 🏠 **Variable Environment & Scope:** ⭐ **NEW**
+### 🏠 **Variable Environment & Scope:**
 - How each execution context creates its own variable environment
 - Why local variables don't affect global variables
 - Variable shadowing and scope isolation
 - Call stack management and context lifecycle
 - Memory cleanup when execution contexts are destroyed
+
+### 🔍 **Undefined vs Not Defined:** ⭐ **NEW**
+- **undefined**: Variable exists in memory but has no assigned value
+- **not defined**: Variable doesn't exist in memory (never declared)
+- **ReferenceError**: When and why it occurs
+- **Dynamic typing**: How variables can change types
+- **Safe checking**: How to safely check if variables exist
 
 ## 🔧 Usage Scenarios
 
@@ -132,7 +171,8 @@
 - **Teaching**: Use HTML demos for presentations
 - **Reference**: Keep JS files for detailed documentation
 - **Debugging**: Understand why hoisting-related errors occur
-- **Scope Issues**: Debug variable scope and environment problems ⭐ **NEW**
+- **Scope Issues**: Debug variable scope and environment problems
+- **Error Handling**: Distinguish between undefined and ReferenceError ⭐ **NEW**
 
 ## 📚 Study Path Recommendation
 
@@ -140,8 +180,10 @@
 2. **Deep dive**: `js-engine-detailed-explanation.js`
 3. **Then explore**: `js-hoisting-behavior-deep-dive.html`
 4. **Master concepts**: `js-hoisting-detailed-explanation.js`
-5. **Understand scope**: `variable-environment-and-scope-demo.html` ⭐ **NEW**
-6. **Practice scope**: `howFunctionWorkAndVariableEnvironment.js` ⭐ **NEW**
+5. **Understand scope**: `variable-environment-and-scope-demo.html`
+6. **Practice scope**: `howFunctionWorkAndVariableEnvironment.js`
+7. **Learn undefined**: `undefined-vs-not-defined-demo.html` ⭐ **NEW**
+8. **Master undefined**: `UndefinedVsNotDefined.js` ⭐ **NEW**
 
 ## 🎯 Quick Revision Notes
 
@@ -153,19 +195,31 @@
 - Call stack manages execution contexts in LIFO order
 - Context destruction cleans up local variables automatically
 
-**Expected Output Pattern:**
+**Undefined vs Not Defined:** ⭐ **NEW**
+- **undefined**: Variable declared but not assigned a value
+- **not defined**: Variable never declared (causes ReferenceError)
+- **Memory**: undefined variables have memory allocated, not defined variables don't
+- **Hoisting**: var declarations are hoisted and initialized with undefined
+
+**Expected Output Patterns:**
 ```javascript
-// For: var x=1; a(); b(); console.log(x);
+// Variable Environment & Scope:
+// var x=1; a(); b(); console.log(x);
 10   // from function a() - local x
 100  // from function b() - local x  
 1    // from global scope - original x unchanged
+
+// Undefined vs Not Defined:
+// console.log(a); var a=10; console.log(a); a="hello"; console.log(a); console.log(b);
+undefined           // hoisted var before assignment
+10                  // after assignment
+"hello"             // after reassignment
+ReferenceError: b is not defined  // never declared
 ```
 
-**Memory Layout:**
-- Global: `x: 1, a: function, b: function`
-- Function a(): `x: 10` (local, independent)
-- Function b(): `x: 100` (local, independent)
-- Result: Global `x` remains `1`
+**Memory Layouts:**
+- **Scope**: Global: `x: 1, a: function, b: function` | Function a(): `x: 10` | Function b(): `x: 100`
+- **Undefined**: Global: `a: undefined → 10 → "hello"` | `b: [NOT IN MEMORY]`
 
 ---
-*Comprehensive Study Material for JavaScript Engine Internals, Hoisting Behavior & Variable Environment*
+*Comprehensive Study Material for JavaScript Engine Internals, Hoisting Behavior, Variable Environment & Undefined vs Not Defined*
