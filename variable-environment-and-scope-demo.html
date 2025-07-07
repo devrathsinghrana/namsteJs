@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Variable Environment & Scope - JavaScript Engine Internals</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 30px;
+        }
+        
+        h2 {
+            color: #34495e;
+            margin-top: 30px;
+            padding: 10px;
+            background: linear-gradient(90deg, #74b9ff, #0984e3);
+            color: white;
+            border-radius: 8px;
+        }
+        
+        h3 {
+            color: #e74c3c;
+            margin-top: 20px;
+            padding: 8px 15px;
+            background: #ecf0f1;
+            border-left: 4px solid #e74c3c;
+            border-radius: 5px;
+        }
+        
+        .code-block {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            border-left: 5px solid #4299e1;
+        }
+        
+        .execution-step {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            transition: all 0.3s ease;
+        }
+        
+        .execution-step:hover {
+            border-color: #007bff;
+            box-shadow: 0 5px 15px rgba(0,123,255,0.1);
+        }
+        
+        .memory-phase {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #333;
+        }
+        
+        .execution-phase {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            color: #333;
+        }
+        
+        .call-stack {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #333;
+        }
+        
+        .variable-env {
+            background: #e8f5e8;
+            border-left: 5px solid #28a745;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        
+        .output-section {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 20px;
+            border-radius: 10px;
+            font-family: 'Courier New', monospace;
+            margin: 20px 0;
+            border: 2px solid #333;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+        }
+        
+        .highlight {
+            background: #fff3cd;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+        
+        .step-number {
+            background: #007bff;
+            color: white;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .concept-box {
+            background: #e3f2fd;
+            border: 2px solid #2196f3;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .success {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧠 Variable Environment & Scope in JavaScript</h1>
+        
+        <div class="concept-box">
+            <h2>📋 Original Code</h2>
+            <div class="code-block">
+var x = 1;
+a();
+b();
+console.log(x);
+
+function a() {
+  var x = 10;
+  console.log(x);
+}
+
+function b() {
+  var x = 100;
+  console.log(x);
+}
+            </div>
+            
+            <div class="warning">
+                <strong>🎯 Key Learning:</strong> This code demonstrates how each execution context has its own <strong>Variable Environment</strong> and how local variables don't affect global variables due to scope isolation.
+            </div>
+        </div>
+
+        <h2>🔄 Phase 1: Memory Creation Phase (Global Execution Context)</h2>
+        
+        <div class="execution-step memory-phase">
+            <h3><span class="step-number">1</span>Global Memory Setup</h3>
+            <div class="variable-env">
+                <strong>Global Variable Environment:</strong><br>
+                • <code>x: undefined</code> (memory allocated)<br>
+                • <code>a: function object</code> (complete function stored)<br>
+                • <code>b: function object</code> (complete function stored)
+            </div>
+            <p><strong>Explanation:</strong> JavaScript engine scans the entire code and allocates memory for variables and functions. Function declarations are completely stored while variables get <code>undefined</code>.</p>
+        </div>
+
+        <h2>⚡ Phase 2: Execution Phase</h2>
+        
+        <div class="execution-step execution-phase">
+            <h3><span class="step-number">2</span>Line 1: var x = 1;</h3>
+            <div class="variable-env">
+                <strong>Global Variable Environment:</strong><br>
+                • <code>x: 1</code> ✅ (value assigned)<br>
+                • <code>a: function object</code><br>
+                • <code>b: function object</code>
+            </div>
+            <p><strong>Action:</strong> The value <code>1</code> is assigned to global variable <code>x</code>.</p>
+        </div>
+
+        <div class="execution-step execution-phase">
+            <h3><span class="step-number">3</span>Line 2: a();</h3>
+            <div class="call-stack">
+                <strong>📚 Call Stack:</strong><br>
+                1. <code>a() execution context</code> ← Current<br>
+                2. <code>Global execution context</code>
+            </div>
+            
+            <h4>🔍 Function a() Execution Context Creation:</h4>
+            
+            <div class="variable-env">
+                <strong>Function a() Variable Environment:</strong><br>
+                • <code>x: undefined</code> (local variable)
+            </div>
+            
+            <h4>⚡ Function a() Execution:</h4>
+            <ul>
+                <li><strong>var x = 10;</strong> → Local <code>x</code> gets value <code>10</code></li>
+                <li><strong>console.log(x);</strong> → Prints <code>10</code> (local x, not global)</li>
+            </ul>
+            
+            <div class="success">
+                <strong>📤 Output:</strong> <code>10</code><br>
+                <strong>💡 Why 10?</strong> The function has its own local variable <code>x</code> which shadows the global <code>x</code>.
+            </div>
+            
+            <p><strong>Context Destruction:</strong> After function completes, its execution context is removed from call stack.</p>
+        </div>
+
+        <div class="execution-step execution-phase">
+            <h3><span class="step-number">4</span>Line 3: b();</h3>
+            <div class="call-stack">
+                <strong>📚 Call Stack:</strong><br>
+                1. <code>b() execution context</code> ← Current<br>
+                2. <code>Global execution context</code>
+            </div>
+            
+            <h4>🔍 Function b() Execution Context Creation:</h4>
+            
+            <div class="variable-env">
+                <strong>Function b() Variable Environment:</strong><br>
+                • <code>x: undefined</code> (local variable)
+            </div>
+            
+            <h4>⚡ Function b() Execution:</h4>
+            <ul>
+                <li><strong>var x = 100;</strong> → Local <code>x</code> gets value <code>100</code></li>
+                <li><strong>console.log(x);</strong> → Prints <code>100</code> (local x)</li>
+            </ul>
+            
+            <div class="success">
+                <strong>📤 Output:</strong> <code>100</code><br>
+                <strong>💡 Why 100?</strong> Again, the function has its own local <code>x</code> completely independent of global and function a's <code>x</code>.
+            </div>
+            
+            <p><strong>Context Destruction:</strong> Function b's execution context is removed from call stack.</p>
+        </div>
+
+        <div class="execution-step execution-phase">
+            <h3><span class="step-number">5</span>Line 4: console.log(x);</h3>
+            <div class="call-stack">
+                <strong>📚 Call Stack:</strong><br>
+                1. <code>Global execution context</code> ← Current
+            </div>
+            
+            <div class="variable-env">
+                <strong>Global Variable Environment:</strong><br>
+                • <code>x: 1</code> ✅ (unchanged)<br>
+                • <code>a: function object</code><br>
+                • <code>b: function object</code>
+            </div>
+            
+            <div class="success">
+                <strong>📤 Output:</strong> <code>1</code><br>
+                <strong>💡 Why 1?</strong> This accesses the global <code>x</code> which was never modified. The local variables in functions a() and b() didn't affect it.
+            </div>
+        </div>
+
+        <h2>🎯 Key Concepts Demonstrated</h2>
+        
+        <div class="concept-box">
+            <h3>🏠 Variable Environment & Scope</h3>
+            <ul>
+                <li><strong>Each execution context has its own Variable Environment</strong></li>
+                <li><strong>Local variables don't affect variables in outer scopes</strong></li>
+                <li><strong>Variable shadowing:</strong> Local <code>x</code> shadows global <code>x</code> within function scope</li>
+                <li><strong>Scope isolation:</strong> Changes in one function don't affect other functions or global scope</li>
+            </ul>
+        </div>
+
+        <div class="concept-box">
+            <h3>📚 Call Stack Behavior</h3>
+            <ul>
+                <li><strong>LIFO (Last In, First Out):</strong> Functions are executed in stack order</li>
+                <li><strong>Context Creation:</strong> Each function call creates new execution context</li>
+                <li><strong>Context Destruction:</strong> Context is removed when function completes</li>
+                <li><strong>Memory Management:</strong> Local variables are cleaned up when context is destroyed</li>
+            </ul>
+        </div>
+
+        <h2>🚀 Interactive Demo</h2>
+        
+        <button class="btn" onclick="runDemo()">▶️ Run Complete Demo</button>
+        <button class="btn" onclick="stepByStep()">🔄 Step-by-Step Execution</button>
+        <button class="btn" onclick="clearOutput()">🗑️ Clear Output</button>
+        
+        <div class="output-section">
+            <h3>📤 Console Output:</h3>
+            <div id="output"></div>
+        </div>
+
+        <div class="concept-box">
+            <h3>🧠 Memory Layout Visualization</h3>
+            <div class="code-block">
+Call Stack During Execution:
+
+Step 1: Global Context
+├─ Global Variable Environment
+│  ├─ x: 1
+│  ├─ a: function
+│  └─ b: function
+
+Step 2: Function a() called
+├─ a() Execution Context        ← Current
+│  └─ Local Variable Environment
+│     └─ x: 10 (shadows global x)
+└─ Global Execution Context
+   └─ Global Variable Environment
+      ├─ x: 1 (unchanged)
+      ├─ a: function
+      └─ b: function
+
+Step 3: Function b() called  
+├─ b() Execution Context        ← Current
+│  └─ Local Variable Environment
+│     └─ x: 100 (shadows global x)
+└─ Global Execution Context
+   └─ Global Variable Environment
+      ├─ x: 1 (still unchanged)
+      ├─ a: function
+      └─ b: function
+
+Final: Back to Global Context
+└─ Global Variable Environment
+   ├─ x: 1 (never changed)
+   ├─ a: function
+   └─ b: function
+            </div>
+        </div>
+
+        <div class="warning">
+            <h3>⚠️ Common Misconceptions</h3>
+            <ul>
+                <li><strong>❌ Wrong:</strong> "Function a() changes global x to 10"</li>
+                <li><strong>✅ Correct:</strong> "Function a() creates its own local x with value 10"</li>
+                <li><strong>❌ Wrong:</strong> "Variables in functions affect global variables"</li>
+                <li><strong>✅ Correct:</strong> "Each function has its own variable environment (scope)"</li>
+            </ul>
+        </div>
+
+        <div class="success">
+            <h3>✅ Final Output Sequence</h3>
+            <div class="code-block">
+10    ← from function a()
+100   ← from function b()  
+1     ← from global scope
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let stepCount = 0;
+        
+        function runDemo() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<div style="color: #ffff00;">🚀 Running complete demo...</div>';
+            
+            setTimeout(() => {
+                // Simulate the actual code execution
+                let result = '';
+                
+                // Global x = 1
+                result += '📍 Global x = 1\n';
+                
+                // Call function a()
+                result += '\n🔄 Calling function a()...\n';
+                result += '   ├─ Creating local x = 10\n';
+                result += '   ├─ console.log(x) → ';
+                result += '<span style="color: #00ff00; font-weight: bold;">10</span>\n';
+                result += '   └─ Function a() completed\n';
+                
+                // Call function b()
+                result += '\n🔄 Calling function b()...\n';
+                result += '   ├─ Creating local x = 100\n';
+                result += '   ├─ console.log(x) → ';
+                result += '<span style="color: #00ff00; font-weight: bold;">100</span>\n';
+                result += '   └─ Function b() completed\n';
+                
+                // Global console.log
+                result += '\n🌍 Back to global scope...\n';
+                result += '   └─ console.log(x) → ';
+                result += '<span style="color: #00ff00; font-weight: bold;">1</span>\n';
+                
+                result += '\n✅ Demo completed!';
+                
+                output.innerHTML = `<pre>${result}</pre>`;
+            }, 1000);
+        }
+        
+        function stepByStep() {
+            const output = document.getElementById('output');
+            stepCount++;
+            
+            const steps = [
+                '📍 Step 1: Memory Creation Phase\n   ├─ x: undefined\n   ├─ a: function\n   └─ b: function',
+                '📍 Step 2: x = 1 (Global assignment)\n   └─ Global x is now 1',
+                '📍 Step 3: Calling a()\n   ├─ New execution context created\n   ├─ Local x = 10\n   └─ Output: <span style="color: #00ff00;">10</span>',
+                '📍 Step 4: Calling b()\n   ├─ New execution context created\n   ├─ Local x = 100\n   └─ Output: <span style="color: #00ff00;">100</span>',
+                '📍 Step 5: Global console.log(x)\n   ├─ Accessing global x\n   └─ Output: <span style="color: #00ff00;">1</span>\n\n✅ All steps completed!'
+            ];
+            
+            if (stepCount <= steps.length) {
+                output.innerHTML = `<pre>${steps[stepCount - 1]}</pre>`;
+            } else {
+                stepCount = 0;
+                output.innerHTML = '<div style="color: #ffff00;">🔄 Click again to restart step-by-step demo</div>';
+            }
+        }
+        
+        function clearOutput() {
+            document.getElementById('output').innerHTML = '<div style="color: #888;">Output cleared. Click Run Demo or Step-by-Step to see execution.</div>';
+            stepCount = 0;
+        }
+
+        // Run the actual JavaScript code for comparison
+        function executeActualCode() {
+            console.log("=== Executing actual code ===");
+            
+            var x = 1;
+            
+            function a() {
+                var x = 10;
+                console.log(x);
+            }
+            
+            function b() {
+                var x = 100;
+                console.log(x);
+            }
+            
+            a();
+            b();
+            console.log(x);
+            
+            console.log("=== Execution completed ===");
+        }
+
+        // Auto-run for demonstration
+        window.onload = function() {
+            executeActualCode();
+        };
+    </script>
+</body>
+</html>
