@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Lexical Scope & Scope Chain in JavaScript</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 2em; }
+    code, pre { background: #f4f4f4; padding: 0.5em; border-radius: 4px; }
+    .section { margin-bottom: 2em; }
+    .output { background: #222; color: #0f0; padding: 1em; border-radius: 4px; }
+  </style>
+</head>
+<body>
+  <h1>Understanding Lexical Scope & Scope Chain in JavaScript</h1>
+
+  <div class="section">
+    <h2>Example Code</h2>
+    <pre>
+a();
+
+function a() {
+  var b = 23;
+  c();
+  function c() {
+    console.log(b); // 23
+  }
+}
+
+console.log(b); // ReferenceError: b is not defined
+    </pre>
+  </div>
+
+  <div class="section">
+    <h2>Explanation</h2>
+    <ul>
+      <li>
+        <strong>Lexical Scope:</strong>  
+        The scope of a variable is determined by its physical location in the source code. Inner functions have access to variables defined in their outer (parent) functions.
+      </li>
+      <li>
+        <strong>Scope Chain:</strong>  
+        When a variable is used, JavaScript looks for it in the current scope. If not found, it looks in the parent scope, and so on, up to the global scope.
+      </li>
+    </ul>
+    <p>
+      In the example, <code>c()</code> is defined inside <code>a()</code>, so it can access <code>b</code>. But <code>b</code> is not accessible outside <code>a()</code>.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>Visualization</h2>
+    <pre>
+Global Scope
+|
+|-- a() Scope
+    |
+    |-- c() Scope
+    </pre>
+    <p>
+      <code>c()</code> can access <code>b</code> because it is inside <code>a()</code>.  
+      <code>console.log(b)</code> outside <code>a()</code> throws an error because <code>b</code> is not in the global scope.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>Live Output</h2>
+    <div class="output" id="output"></div>
+  </div>
+
+  <script>
+    function print(msg) {
+      document.getElementById('output').textContent += msg + '\n';
+    }
+
+    // The actual code demonstration
+    a();
+
+    function a() {
+      var b = 23;
+      c();
+      function c() {
+        print('Inside c(), b = ' + b); // 23
+      }
+    }
+
+    try {
+      // This will throw ReferenceError
+      print('Outside a(), b = ' + b);
+    } catch (e) {
+      print('Outside a(), error: ' + e);
+    }
+  </script>
+</body>
+</html>

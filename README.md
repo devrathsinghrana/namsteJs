@@ -223,3 +223,94 @@ ReferenceError: b is not defined  // never declared
 
 ---
 *Comprehensive Study Material for JavaScript Engine Internals, Hoisting Behavior, Variable Environment & Undefined vs Not Defined*
+
+# Lexical Scope & Scope Chain in JavaScript
+
+## What is Lexical Scope?
+
+Lexical scope means that the scope of a variable is determined by its location within the source code. Functions are executed using the variable scope that was in effect when they were defined, not when they are called.
+
+**Example:**
+```javascript
+function outer() {
+  var x = 10;
+  function inner() {
+    console.log(x); // 10
+  }
+  inner();
+}
+outer();
+```
+Here, `inner` can access `x` because it is defined inside `outer`.
+
+---
+
+## What is Scope Chain?
+
+When a variable is referenced, JavaScript looks for it in the current scope. If not found, it looks in the parent scope, and continues up the chain until it reaches the global scope. This series of scopes is called the scope chain.
+
+---
+
+## Example Demonstration
+
+See `index.html` for a live demonstration.
+
+```javascript
+a();
+
+function a() {
+  var b = 23;
+  c();
+  function c() {
+    console.log(b); // 23
+  }
+}
+
+console.log(b); // ReferenceError: b is not defined
+```
+
+- `c()` can access `b` because it is lexically inside `a()`.
+- `console.log(b)` outside `a()` throws an error because `b` is not in the global scope.
+
+---
+
+## Visual Representation
+
+```
+Global Scope
+|
+|-- a() Scope
+    |
+    |-- c() Scope
+```
+
+- `c()` can access variables in `a()` and global scope.
+- Variables are not accessible upwards (from child to parent or global).
+
+---
+
+## How JavaScript Internally Works
+
+1. **Global Execution Context** is created.
+2. Functions are hoisted.
+3. When `a()` is called, a new execution context for `a` is created.
+4. `b` is created in `a`'s local scope.
+5. `c()` is called, creating a new execution context for `c`.
+6. Inside `c`, JS looks for `b`:
+    - Not found in `c`, so it looks in `a` (finds `b`).
+    - If not found in `a`, it would look in the global scope.
+7. After `a()` finishes, `console.log(b)` tries to access `b` in the global scope, but `b` is not defined there, so a `ReferenceError` occurs.
+
+---
+
+## Try It Yourself
+
+Open `lexicalScopeAndScopeChain.html` in your browser to see the code in action and observe the output.
+
+---
+
+## Key Takeaways
+
+- **Lexical scope** is determined by where functions and blocks are written.
+- **Scope chain** is the process JS uses to resolve variable references.
+- Accessing a variable outside its scope results in a `ReferenceError`.
