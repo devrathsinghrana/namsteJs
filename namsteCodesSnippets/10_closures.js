@@ -89,3 +89,30 @@ function outerLetFunction() {
 }
 outerLetFunction();
 // The output will be different for the two functions due to the use of `var` and `let`.
+
+// Calling a function once using closure
+// Function that returns a once function
+function createOnceFunction() {
+  let hasBeenCalled = false;
+
+  return function (input) {
+    if (!hasBeenCalled) {
+      const result = input * input;
+      console.log(`Square of ${input}: ${result}`);
+      hasBeenCalled = true;
+    } else {
+      console.log("Function can only be called once.");
+    }
+  };
+}
+
+// Create the once function for calculating the square
+const calculateSquareOnce = createOnceFunction();
+
+// Call the function with input 5 (first call)
+calculateSquareOnce(5); // Output: Square of 5: 25
+
+// Call the function again (subsequent calls)
+calculateSquareOnce(10); // Output: Function can only be called once.
+// Call the function again (subsequent calls)
+calculateSquareOnce(15); // Output: Function can only be called once.
